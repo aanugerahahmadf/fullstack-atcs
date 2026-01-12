@@ -32,4 +32,5 @@ class ManageBuildings extends ManageRecords
                     ->label('Export Building'),
         ];
     }
+
 }

@@ -39,6 +39,18 @@ export default function Navbar() {
     };
   }, [])
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
+
   // Memoize the toggle function to prevent unnecessary re-renders
   const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(prev => !prev)
@@ -87,17 +99,17 @@ export default function Navbar() {
                 <Link 
                   key={item.path}
                   href={item.path} 
-                  className={`relative py-1 text-sm font-semibold transition-colors duration-200
+                  className={`relative py-1 text-sm font-bold transition-all duration-300 active:scale-95
                     ${isActive 
-                      ? 'text-black' 
-                      : 'text-gray-700 hover:text-black'
+                      ? 'text-black opacity-100 scale-105' 
+                      : 'text-black opacity-30 hover:opacity-100'
                     }
                   `}
                   prefetch={true}
                 >
                   {item.name}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-black rounded-full" />
+                    <span className="absolute -bottom-1 left-0 w-full h-[3px] bg-black rounded-full" />
                   )}
                 </Link>
               )
@@ -119,38 +131,75 @@ export default function Navbar() {
         </div>
       </div>
       
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Sidebar Overlay & Container */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg z-40 animate-in slide-in-from-top-2 duration-200">
-          <div className="flex flex-col divide-y divide-gray-100">
-            {[
-              { name: 'Home', path: '/' },
-              { name: 'Maps', path: '/maps' },
-              { name: 'Playlist', path: '/playlist' },
-              { name: 'Contact', path: '/contact' },
-            ].map((item) => {
-              const isActive = item.path === '/' 
-                ? pathname === '/' 
-                : pathname?.startsWith(item.path);
+        <>
+          {/* Backdrop Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-300"
+            onClick={closeMobileMenu}
+          />
+          
+          {/* Sidebar Panel */}
+          <div className="fixed top-0 right-0 h-screen w-72 bg-white z-50 md:hidden shadow-2xl animate-in slide-in-from-right duration-300 ease-out flex flex-col">
+            {/* Close Button Inside Sidebar */}
+            <button 
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all duration-300 active:scale-90"
+              onClick={closeMobileMenu}
+              aria-label="Close menu"
+            >
+              {XIcon ? <XIcon size={24} /> : <div className="w-6 h-6" />}
+            </button>
 
-              return (
-                <Link 
-                  key={item.path}
-                  href={item.path} 
-                  className={`block px-6 py-3 text-sm font-medium transition-colors ${
-                    isActive 
-                      ? 'bg-gray-50 text-black' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-black'
-                  }`}
-                  onClick={closeMobileMenu}
-                  prefetch={true}
-                >
-                  {item.name}
-                </Link>
-              )
-            })}
+            {/* Sidebar Header - Logo Top & Centered */}
+            <div className="flex justify-center px-6 pt-0 pb-0">
+              <Link href="/" className="flex items-center -mt-4 active:scale-95 transition-transform" prefetch={true} onClick={closeMobileMenu}>
+                <Image
+                  src="/images/logo-pertamina-light.png"
+                  alt="Pertamina"
+                  width={340}
+                  height={220}
+                  className="h-40 md:h-44 w-auto object-contain"
+                  priority
+                />
+              </Link>
+            </div>
+
+            {/* Navigation Links - Brought Closer to Logo */}
+            <div className="flex-1 py-0 mt-0 overflow-y-auto">
+              <div className="flex flex-col px-4 gap-2">
+                {[
+                  { name: 'Home', path: '/' },
+                  { name: 'Maps', path: '/maps' },
+                  { name: 'Playlist', path: '/playlist' },
+                  { name: 'Contact', path: '/contact' },
+                ].map((item) => {
+                  const isActive = item.path === '/' 
+                    ? pathname === '/' 
+                    : pathname?.startsWith(item.path);
+
+                  return (
+                    <Link 
+                      key={item.path}
+                      href={item.path} 
+                      className={`flex items-center justify-between px-6 py-4 rounded-xl text-base font-bold transition-all duration-300 active:scale-95 ${
+                        isActive 
+                          ? 'bg-gray-50 text-black opacity-100' 
+                          : 'text-black opacity-30 hover:opacity-100 hover:bg-gray-50/50'
+                      }`}
+                      onClick={closeMobileMenu}
+                      prefetch={true}
+                    >
+                      <span>{item.name}</span>
+                      {isActive && <div className="w-2.5 h-2.5 bg-black rounded-full" />}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+
           </div>
-        </div>
+        </>
       )}
     </nav>
   )

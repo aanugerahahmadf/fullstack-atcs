@@ -56,6 +56,11 @@ class Cctv extends Model
         return $this->belongsTo(Room::class);
     }
 
+    public function ATCSHistory(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductionTrend::class);
+    }
+
     // Clear cache when CCTV is created, updated, or deleted
     // Also auto-generate URLs
     public static function boot()

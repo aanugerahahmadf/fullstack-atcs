@@ -20,6 +20,8 @@ class ProductionTrend extends Model
     protected $table = 'production_trends';
     
     protected $fillable = [
+        'building_id',
+        'cctv_id',
         'date',
         'production',
         'target',
@@ -32,6 +34,8 @@ class ProductionTrend extends Model
     ];
 
     protected $casts = [
+        'building_id' => 'integer',
+        'cctv_id' => 'integer',
         'date' => 'date',
         'production' => 'decimal:2',
         'target' => 'decimal:2',
@@ -42,6 +46,16 @@ class ProductionTrend extends Model
         'signal_changes' => 'integer',
         'green_wave_efficiency' => 'decimal:2',
     ];
+
+    public function building()
+    {
+        return $this->belongsTo(Building::class);
+    }
+
+    public function cctv()
+    {
+        return $this->belongsTo(Cctv::class);
+    }
 
     // Clear cache when production trend is created, updated, or deleted
     public static function boot()

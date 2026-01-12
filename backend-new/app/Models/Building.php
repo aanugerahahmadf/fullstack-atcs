@@ -81,6 +81,7 @@ class Building extends Model
         return $this->hasMany(Cctv::class);
     }
 
+
     // Clear cache when building is created, updated, or deleted
     public static function boot()
     {

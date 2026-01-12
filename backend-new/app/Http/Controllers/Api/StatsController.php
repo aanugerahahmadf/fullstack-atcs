@@ -17,8 +17,8 @@ class StatsController extends Controller
     public function index()
     {
         try {
-            // Ultra-fast cached statistics with 0.5 second TTL
-            $stats = Cache::remember('system_stats', 0.5, function () {
+            // Efficient cached statistics with 30 second TTL
+            $stats = Cache::remember('system_stats', 30, function () {
                 return [
                     'total_buildings' => DB::table('buildings')->count(),
                     'total_rooms' => DB::table('rooms')->count(),

@@ -78,6 +78,7 @@ class BuildingResource extends Resource
                     ->label('Marker Icon')
                     ->placeholder('https://blade-ui-kit.com/blade-icons/govicon-building')
                     ->default('https://blade-ui-kit.com/blade-icons/govicon-building'),
+
             ]);
     }
 
@@ -93,7 +94,11 @@ class BuildingResource extends Resource
                     ->alignment('center'),
                 TextColumn::make('name')
                     ->searchable()
-                    ->alignment('center'),
+                    ->alignment('center')
+                    ->weight('bold')
+                    ->color('primary'),
+
+
                 TextColumn::make('latitude')
                     ->label('Latitude')
                     ->searchable()
@@ -139,11 +144,13 @@ class BuildingResource extends Resource
                 ViewAction::make()
                     ->button()
                     ->color('info')
-                    ->size('lg'),
+                    ->size('lg')
+                    ->modalWidth('7xl'),
                 EditAction::make()
                     ->button()
                     ->color('warning')
                     ->size('lg')
+                    ->modalWidth('7xl')
                     ->visible(fn (): bool => Gate::allows('Update:Building'))
                     ->successNotification(
                         Notification::make()
@@ -176,6 +183,7 @@ class BuildingResource extends Resource
                 ]),
             ]);
     }
+
 
     public static function getPages(): array
     {

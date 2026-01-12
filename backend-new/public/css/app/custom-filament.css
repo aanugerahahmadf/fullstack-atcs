@@ -14,9 +14,9 @@
 .fi-logo img,
 .fi-sidebar-brand img,
 .custom-filament-logo {
-    height: 8rem !important;
+    height: 9rem !important;
     width: auto !important;
-    max-height: 8rem !important;
+    max-height: 9rem !important;
     object-fit: contain !important;
     display: block !important;
     margin: 1rem auto !important;
@@ -34,6 +34,7 @@
     height: auto !important;
     max-height: none !important;
 }
+
 
 /* ================================================
    FILAMENT LOGO CUSTOM STYLE

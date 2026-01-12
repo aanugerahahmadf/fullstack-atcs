@@ -97,7 +97,7 @@ export default function ContactPage() {
       {/* Header */}
       <div className="pt-4 pb-6 px-4">
         <div className="flex justify-center items-center gap-4">
-          <h1 className="text-4xl md:text-5xl font-semibold text-white text-center">Contact Us</h1>
+          <h1 className="text-3xl md:text-4xl font-semibold text-white text-center">Contact Us</h1>
         </div>
       </div>
 
@@ -126,8 +126,8 @@ export default function ContactPage() {
                     <div className="flex flex-col items-center justify-center text-center">
                       {icons.Mail && <icons.Mail className="w-10 h-10 text-blue-400 mb-3" />}
                       <div>
-                        <p className="text-white text-base md:text-lg font-bold mb-1">Email</p>
-                        <p className="text-white text-base">{contact.email}</p>
+                        <p className="text-white text-base md:text-lg font-medium mb-1">Email</p>
+                        <p className="text-white text-lg md:text-xl">{contact.email}</p>
                       </div>
                     </div>
                   </div>
@@ -142,8 +142,8 @@ export default function ContactPage() {
                     <div className="flex flex-col items-center justify-center text-center">
                       {icons.Phone && <icons.Phone className="w-10 h-10 text-green-400 mb-3" />}
                       <div>
-                        <p className="text-white text-base md:text-lg font-bold mb-1">Phone</p>
-                        <p className="text-white text-base">{contact.phone}</p>
+                        <p className="text-white text-base md:text-lg font-medium mb-1">Phone</p>
+                        <p className="text-white text-lg md:text-xl">{contact.phone}</p>
                       </div>
                     </div>
                   </div>
@@ -158,8 +158,8 @@ export default function ContactPage() {
                     <div className="flex flex-col items-center justify-center text-center">
                       {icons.Instagram && <icons.Instagram className="w-10 h-10 text-pink-400 mb-3" />}
                       <div>
-                        <p className="text-white text-base md:text-lg font-bold mb-1">Instagram</p>
-                        <p className="text-white text-base">{contact.instagram}</p>
+                        <p className="text-white text-base md:text-lg font-medium mb-1">Instagram</p>
+                        <p className="text-white text-lg md:text-xl">{contact.instagram}</p>
                       </div>
                     </div>
                   </div>
@@ -178,8 +178,8 @@ export default function ContactPage() {
                   <div className="flex flex-col items-center justify-center text-center">
                     {icons.MapPin && <icons.MapPin className="w-10 h-10 text-red-400 mb-3" />}
                     <div>
-                      <p className="text-white text-base md:text-lg font-bold mb-1">Address</p>
-                      <p className="text-white text-base">{contact.address}</p>
+                      <p className="text-white text-base md:text-lg font-medium mb-1">Address</p>
+                      <p className="text-white text-lg md:text-xl">{contact.address}</p>
                     </div>
                   </div>
                 </div>

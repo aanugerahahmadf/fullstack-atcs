@@ -26,38 +26,57 @@ class UnitPerformanceService extends BaseService
      */
     public function getUnitPerformance()
     {
-        // Ultra-fast cache with 0.5 second TTL for maximum responsiveness
-        return Cache::remember('unit_performance', 0.5, function () {
-            // Get building data with related rooms and CCTVs
-            $buildings = \App\Models\Building::with(['rooms.cctvs'])->get();
+        // Menggunakan kunci cache baru untuk memastikan data langsung terupdate
+        return Cache::remember('unit_performance_fresh', 30, function () {
+            // Ambil data CCTV beserta relasinya
+            $cctvs = \App\Models\Cctv::with(['ATCSHistory', 'building', 'room'])->get();
             
-            // If no building data exists, return empty array
-            if ($buildings->isEmpty()) {
+            if ($cctvs->isEmpty()) {
                 return [];
             }
             
-            // Transform the building data to match the expected format with realistic metrics
-            return $buildings->map(function ($building) {
-                // Calculate infrastructure counts
-                $roomCount = $building->rooms->count();
-                $cctvCount = $building->rooms->sum(function ($room) {
-                    return $room->cctvs->count();
-                });
-                
-                // Generate realistic performance metrics based on infrastructure
-                $efficiency = min(100, max(70, 70 + ($roomCount * 2) + ($cctvCount * 0.5) + mt_rand(-10, 10)));
-                $trafficDensity = max(0, 50 + ($cctvCount * 3) + mt_rand(-20, 20));
-                $signalOptimization = min(100, max(60, 60 + ($roomCount * 1.5) + mt_rand(-15, 15)));
-                $capacity = 500 + ($roomCount * 100) + ($cctvCount * 25);
-                
+            // Group by Building and Room
+            $groupedData = $cctvs->groupBy(function($cctv) {
+                $buildingName = $cctv->building->name ?? 'Unknown Building';
+                $roomName = $cctv->room->name ?? 'Unknown Room';
+                return "{$buildingName} - {$roomName}";
+            });
+
+            return $groupedData->map(function ($items, $label) {
+                $count = $items->count();
+                $totalEfficiency = 0;
+                $totalDensity = 0;
+                $totalOptimization = 0;
+
+                foreach ($items as $cctv) {
+                    // Ambil data terbaru dari histori jika ada
+                    $latestHistory = $cctv->ATCSHistory()->orderBy('date', 'desc')->first();
+                    
+                    // Metrik per CCTV
+                    $cctvEfficiency = $latestHistory->production ?? (75 + (min(25, $cctv->ATCSHistory->count() * 5)));
+                    $cctvDensity = $latestHistory->traffic_volume ?? 0;
+                    $cctvOptimization = $latestHistory->green_wave_efficiency ?? (65 + (min(35, $cctv->ATCSHistory->count() * 7)));
+                    
+                    // Simulasi density jika belum diinput
+                    if ($cctvDensity == 0) {
+                        mt_srand(crc32($cctv->name));
+                        $cctvDensity = mt_rand(40, 90);
+                        mt_srand();
+                    }
+
+                    $totalEfficiency += $cctvEfficiency;
+                    $totalDensity += $cctvDensity;
+                    $totalOptimization += $cctvOptimization;
+                }
+
                 return [
-                    'unit' => $building->name,
-                    'efficiency' => round($efficiency),
-                    'traffic_density' => round($trafficDensity),
-                    'signal_optimization' => round($signalOptimization),
-                    'capacity' => round($capacity),
+                    'unit' => $label,
+                    'efficiency' => round($totalEfficiency / $count),
+                    'traffic_density' => round($totalDensity / $count),
+                    'signal_optimization' => round($totalOptimization / $count),
+                    'capacity' => 100,
                 ];
-            })->toArray();
+            })->take(1)->values()->toArray();
         });
     }
 }

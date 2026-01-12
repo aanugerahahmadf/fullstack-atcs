@@ -31,7 +31,7 @@ class SuperAdminSeeder extends Seeder
             'name' => 'Super Admin',
             'username' => 'superadmin',
             'email' => 'admin@pertamina.com',
-            'password' => Hash::make('admin123'),
+            'password' => 'admin123',
             'email_verified_at' => now(),
         ];
 

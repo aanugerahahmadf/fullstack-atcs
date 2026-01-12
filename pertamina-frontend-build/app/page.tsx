@@ -169,90 +169,58 @@ export default function Home() {
   // Enhanced load data function with system status checking
   const loadData = useCallback(async (overrideDateRange?: {start: string, end: string}) => {
     try {
-      setLoading(true);
+      // Don't set full loading state if we already have some data (for smoother refresh)
+      if (stats.total_buildings === 0) setLoading(true);
       setChartLoading(true);
 
       // Use provided date range or default to current state
       const effectiveDateRange = overrideDateRange || dateRange;
 
       // Fetch all data in parallel for maximum performance
-      console.log('Fetching stats...');
-      const statsData = await getStats();
-      console.log('Stats data:', statsData);
-      
-      console.log('Fetching buildings...');
-      const buildings: Building[] = await getBuildings();
-      console.log('Buildings data:', buildings);
-      
-      console.log('Fetching rooms...');
-      const rooms: Room[] = await getRooms();
-      console.log('Rooms data:', rooms);
-      
-      console.log('Fetching CCTVs...');
-      const cctvs: Cctv[] = await getCctvs();
-      console.log('CCTVs data:', cctvs);
-      
-      console.log('Fetching production trends...');
-      let productionData: ProductionTrend[] = [];
-      try {
-        productionData = await getProductionTrends(effectiveDateRange.start, effectiveDateRange.end);
-        console.log('Production trends data:', productionData);
-        
-        // If we haven't initialized the date range yet, try to set it based on actual data
-        if (!isDateRangeInitialized) {
-          try {
-            // Fetch all production trends to determine the appropriate date range
-            const allProductionData = await getProductionTrends();
-            if (allProductionData && allProductionData.length > 0) {
-              // Find the earliest and latest dates in the data
-              const dates = allProductionData.map(item => new Date(item.date));
-              const minDate = new Date(Math.min(...dates as any));
-              const maxDate = new Date(Math.max(...dates as any));
-              
-              // Set date range to cover the month of the most recent data
-              const displayDate = maxDate;
-              const newStart = new Date(displayDate.getFullYear(), displayDate.getMonth(), 1);
-              const newEnd = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0);
-              
-              const newDateRange = {
-                start: newStart.toISOString().split('T')[0],
-                end: newEnd.toISOString().split('T')[0]
-              };
-              
-              setDateRange(newDateRange);
-              setIsDateRangeInitialized(true);
-              
-              // Re-fetch data with the new date range
-              productionData = await getProductionTrends(newDateRange.start, newDateRange.end);
-            } else {
-              // If no data, mark as initialized to prevent infinite loop
-              setIsDateRangeInitialized(true);
-            }
-          } catch (rangeError) {
-            console.warn('Could not initialize date range from data:', rangeError);
-            setIsDateRangeInitialized(true);
-          }
+      // The API now has built-in caching, so these calls are very fast if data is fresh
+      const [
+        statsData, 
+        buildings, 
+        rooms, 
+        cctvs, 
+        productionDataResponse, 
+        unitPerformanceData
+      ] = await Promise.all([
+        getStats(),
+        getBuildings(),
+        getRooms(),
+        getCctvs(),
+        getProductionTrends(effectiveDateRange.start, effectiveDateRange.end),
+        getUnitPerformance()
+      ]);
+
+      let productionData = productionDataResponse;
+
+      // If we haven't initialized the date range yet, try to set it based on actual data
+      if (!isDateRangeInitialized && productionData.length > 0) {
+        try {
+          const dates = productionData.map(item => new Date(item.date));
+          const maxDate = new Date(Math.max(...dates as any));
+          
+          const newStart = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+          const newEnd = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 0);
+          
+          const newDateRange = {
+            start: newStart.toISOString().split('T')[0],
+            end: newEnd.toISOString().split('T')[0]
+          };
+          
+          setDateRange(newDateRange);
+          setIsDateRangeInitialized(true);
+        } catch (rangeError) {
+          console.warn('Could not initialize date range from data:', rangeError);
+          setIsDateRangeInitialized(true);
         }
-      } catch (error) {
-        handleApiError(error, 'Production Trends');
-        console.error('Failed to fetch production trends:', error);
-        // Return empty array when API fails
-        productionData = [];
-      }
-      
-      console.log('Fetching unit performance...');
-      let unitPerformanceData: UnitPerformance[] = [];
-      try {
-        unitPerformanceData = await getUnitPerformance();
-        console.log('Unit performance data:', unitPerformanceData);
-      } catch (error) {
-        handleApiError(error, 'Unit Performance');
-        console.error('Failed to fetch unit performance:', error);
-        // Return empty array when API fails
-        unitPerformanceData = [];
+      } else if (!isDateRangeInitialized) {
+        setIsDateRangeInitialized(true);
       }
 
-      // Update stats from backend so it matches Filament v4 exactly
+      // Update states
       setStats({
         total_buildings: statsData.total_buildings ?? buildings.length,
         total_rooms: statsData.total_rooms ?? rooms.length,
@@ -263,24 +231,11 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       handleApiError(error, 'Dashboard');
-      
-      // Set default values on error
-      setStats({
-        total_buildings: 0,
-        total_rooms: 0,
-        total_cctvs: 0
-      });
-      
-      setProductionTrends([]);
-      setUnitPerformance([]);
     } finally {
       setLoading(false);
-      // Use setTimeout to ensure state updates are processed
-      setTimeout(() => {
-        setChartLoading(false);
-      }, 0);
+      setChartLoading(false);
     }
-  }, [dateRange, isDateRangeInitialized]);
+  }, [dateRange, isDateRangeInitialized, stats.total_buildings]);
 
   // Load data immediately on component mount
   useEffect(() => {
@@ -358,7 +313,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Production Rate - Total Buildings */}
           <div 
-            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center"
+            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 flex flex-col items-center justify-center text-center"
           >
             <div className="flex flex-col items-center justify-center text-center">
               <div className="mb-3 flex items-center justify-center">
@@ -410,15 +365,7 @@ export default function Home() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-white text-center w-full">
-                Production Trend - {(() => {
-                  try {
-                    const displayDate = new Date(dateRange.start);
-                    return displayDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                  } catch (error) {
-                    console.error('Error formatting date:', error);
-                    return 'Unknown Date';
-                  }
-                })()}
+                Area Traffic Control System
               </h3>
             </div>
             <div className="h-64 md:h-80">
@@ -441,11 +388,9 @@ export default function Home() {
                     <XAxis 
                       dataKey="date" 
                       stroke="#ffffff80" 
-                      tick={{ fill: '#ffffff80' }}
-                      tickFormatter={(value) => {
-                        const date = new Date(value);
-                        return `${date.getDate()}/${date.getMonth() + 1}`;
-                      }}
+                      tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }}
+                      tickFormatter={(value) => value}
+                      height={50}
                     />
                     {/* Left Axis for Volume (Thousands) */}
                     <YAxis 
@@ -523,7 +468,7 @@ export default function Home() {
                 </ResponsiveContainer>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <p className="text-white font-semibold">No production data available</p>
+                  <p className="text-white font-semibold">No ATCS data available for this range</p>
                 </div>
               )}
             </div>
@@ -532,70 +477,64 @@ export default function Home() {
           {/* Unit Performance Chart */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
             <h3 className="text-lg font-semibold text-white mb-6 text-center">Unit Performance</h3>
-            <div className="h-64 md:h-80">
+            <div className="h-64 md:h-80 px-2 flex flex-col">
               {chartLoading ? (
                 <div className="w-full h-full flex items-center justify-center">
                   <p className="text-white font-semibold">Loading chart data...</p>
                 </div>
               ) : unitPerformance && unitPerformance.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={unitPerformance}
-                    margin={{
-                      top: 20,
-                      right: 30,
-                      left: 20,
-                      bottom: 20,
-                    }}
-                    barGap={0}
-                    barCategoryGap="20%"
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" vertical={false} />
-                    <XAxis 
-                      dataKey="unit" 
-                      stroke="#ffffff80" 
-                      tick={{ fill: '#ffffff80' }}
-                      // Removed angle rotation for better readability if labels fit
-                      height={30}
-                    />
-                    <YAxis 
-                      stroke="#ffffff80" 
-                      tick={{ fill: '#ffffff80' }}
-                      domain={[0, 100]}
-                      tickFormatter={(value) => `${value}%`}
-                    />
-                    <Tooltip 
-                      cursor={{ fill: 'transparent' }}
-                      contentStyle={{ 
-                        backgroundColor: '#1e293b', 
-                        borderColor: '#ffffff20', 
-                        color: 'white' 
-                      }}
-                    />
-                    <Legend verticalAlign="top" height={36}/>
-                    <Bar
-                      dataKey="efficiency"
-                      name="System Efficiency"
-                      fill="#3b82f6"
-                      radius={[4, 4, 0, 0]}
-                      label={{ position: 'top', fill: 'white', formatter: (val: any) => `${val}%` }}
-                    />
-                    <Bar
-                      dataKey="traffic_density"
-                      name="Traffic Density"
-                      fill="#10b981"
-                      radius={[4, 4, 0, 0]}
-                      label={{ position: 'top', fill: 'white', formatter: (val: any) => `${val}%` }}
-                    />
-                    <Bar
-                      dataKey="signal_optimization"
-                      name="Signal Optimization"
-                      fill="#f59e0b"
-                      radius={[4, 4, 0, 0]}
-                      label={{ position: 'top', fill: 'white', formatter: (val: any) => `${val}%` }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <>
+                  <div className="flex-1 min-h-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={unitPerformance}
+                        margin={{
+                          top: 40,
+                          right: 30,
+                          left: 30,
+                          bottom: 0,
+                        }}
+                        barGap={4}
+                        barCategoryGap="30%"
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" vertical={false} />
+                        <XAxis 
+                          dataKey="unit" 
+                          stroke="#ffffff" 
+                          tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }}
+                          height={20}
+                        />
+                        <YAxis 
+                          stroke="#ffffff80" 
+                          tick={{ fill: '#ffffff80' }}
+                          domain={[0, 100]}
+                          tickFormatter={(value) => `${value}%`}
+                        />
+                        <Tooltip 
+                          cursor={{ fill: 'transparent' }}
+                          contentStyle={{ 
+                            backgroundColor: '#1e293b', 
+                            borderColor: '#ffffff20', 
+                            color: 'white' 
+                          }}
+                        />
+                        <Bar
+                          dataKey="efficiency"
+                          name="System Efficiency"
+                          fill="#3b82f6"
+                          radius={[4, 4, 0, 0]}
+                          barSize={30}
+                          label={{ position: 'top', fill: 'white', formatter: (val: any) => `${val}%` }}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* Custom Perfectly Centered Legend - Slightly lowered position */}
+                  <div className="flex justify-center items-center gap-2 mt-1 pb-2">
+                    <div className="w-3 h-3 bg-[#3b82f6] rounded-sm"></div>
+                    <span className="text-[#3b82f6] text-sm font-bold">System Efficiency</span>
+                  </div>
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <p className="text-white font-semibold">No performance data available</p>

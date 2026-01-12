@@ -111,7 +111,13 @@ function MapsPage() {
       const mod = await import('hls.js')
       const Hls = mod.default
       if (Hls.isSupported()) {
-        hls = new Hls({ maxBufferLength: 10 })
+        hls = new Hls({ 
+          maxBufferLength: 5,
+          maxMaxBufferLength: 10,
+          enableWorker: true,
+          liveSyncDurationCount: 3,
+          liveMaxLatencyDurationCount: 5
+        })
         hls.loadSource(url)
         hls.attachMedia(video)
       } else {
@@ -158,44 +164,12 @@ function MapsPage() {
     fetchBuildings()
   }, [mounted])
   
-  const handleBuildingClick = async (building: any) => {
-    try {
-      // Fetch rooms for this building
-      const buildingRooms = await getRoomsByBuilding(building.id)
- 
-      // Fetch CCTVs per room from backend so names/data match Filament
-      const buildingRoomsWithCctvs = await Promise.all(
-        buildingRooms.map(async (room: any) => {
-          try {
-            const roomCctvs = await getCctvsByRoom(String(room.id))
-            return {
-              ...room,
-              cctvs: Array.isArray(roomCctvs) ? roomCctvs : []
-            }
-          } catch {
-            return { ...room, cctvs: [] }
-          }
-        })
-      )
-      // Optional: keep flat cache
-      setCctvs(buildingRoomsWithCctvs.flatMap((r: any) => r.cctvs || []))
-      
-      // Add rooms to the building object
-      const buildingWithRooms = { 
-        ...building, 
-        rooms: buildingRoomsWithCctvs 
-      };
-      
-      // Set selected building and show rooms modal
-      setSelectedBuilding(buildingWithRooms);
-      setShowRoomsModal(true);
-    } catch (error) {
-      console.error('Failed to process building data:', error);
-      // Still set the building as selected even if room processing fails
-      setSelectedBuilding({ ...building, rooms: [] });
-      setShowRoomsModal(true);
-    }
-  };
+  const handleBuildingClick = useCallback((building: any) => {
+    // Data is already pre-fetched with rooms and CCTVs from backend
+    // No need for extra API calls!
+    setSelectedBuilding(building);
+    setShowRoomsModal(true);
+  }, []);
   
   const handleLiveStream = useCallback(async (cctv: any) => {
     try {
