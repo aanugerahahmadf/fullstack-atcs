@@ -1,330 +1,145 @@
-# Pertamina Fullstack Application
+# Pertamina ATCS - Fullstack Monitoring System
 
-This is a fully integrated fullstack application combining:
-- **Backend**: Laravel 12 with Filament v4 Admin Panel
-- **Frontend**: React/TypeScript Next.js Application
-- **Streaming**: Node Media Server with FFmpeg for CCTV streaming
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![Next.js](https://img.shields.io/badge/Next.js-15.x-000000?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Filament](https://img.shields.io/badge/Filament-v4-FFAD00?style=for-the-badge&logo=filament)](https://filamentphp.com)
+[![Streaming](https://img.shields.io/badge/Streaming-NodeMediaServer-red?style=for-the-badge)](https://github.com/illuspas/Node-Media-Server)
 
-## 🏗️ Architecture
+A sophisticated, state-of-the-art monitoring and management system for **PT Kilang Pertamina Internasional – Refinery Unit VI Balongan**. This application integrates real-time CCTV streaming, Area Traffic Control System (ATCS) analytics, and infrastructure performance monitoring into a single, cohesive dashboard.
+
+---
+
+## 🏗️ Project Architecture
 
 ```
 .
-├── backend-new/                 # Laravel 12 + Filament v4 Backend
-│   ├── app/                     # Laravel application code
-│   ├── frontend/                # Next.js standalone build
-│   └── public/                  # Laravel public directory
-├── streaming-server/            # Node Media Server for CCTV streaming
-│   ├── server.js                # Streaming server implementation
-│   └── streams/                 # HLS stream storage directory
-└── v0-pertamina-frontend-build/ # Next.js frontend source code
+├── backend-new/                 # Laravel 12 + Filament v4 Backend (Core API & Admin)
+│   ├── app/                     # Business logic, Models, and Services
+│   ├── database/                # Migrations, Seeders, and Factories
+│   ├── routes/                  # API and Web route definitions
+│   └── public/                  # Assets and entry point
+├── pertamina-frontend-build/    # Next.js 15 Source Code (Modern UI)
+│   ├── app/                     # App Router pages and layouts
+│   ├── components/              # Reusable React components
+│   └── lib/                     # API clients and utilities
+├── streaming-server/            # Node Media Server (CCTV Streaming Engine)
+│   ├── server.js                # RTMP to HLS conversion logic
+│   └── streams/                 # Temporary storage for HLS segments
+└── v0-pertamina-frontend-build/ # (Legacy/Build Mirror)
 ```
 
-## 🚀 How It Works
+---
 
-1. **Laravel Backend** (Port 8000):
-   - Serves API endpoints at `/api/*`
-   - Serves Filament admin panel at `/admin/*`
-   - Proxies all other requests to Next.js frontend
+## 🚀 Core Features
 
-2. **Next.js Frontend** (Port 3000):
-   - Serves the React/TypeScript frontend application
-   - Communicates with Laravel backend via API calls
+### 🚦 ATCS (Area Traffic Control System)
+*   **Smart Grouping**: Productivity and performance metrics are grouped by **Building & Room**, allowing for area-based analysis rather than just per-unit.
+*   **Performance Trends**: Multi-line charts tracking Traffic Volume, Average Speed, Congestion Index, and Green Wave Efficiency.
+*   **Unit Performance**: Aggregated bar charts showing System Efficiency across different refinery zones.
+*   **Manual Data Priority**: Admin can input real-world data via Filament, which automatically takes precedence over simulated data for high accuracy.
 
-3. **Streaming Server** (Ports 1935, 8000, 3002):
-   - RTMP server on port 1935 for receiving streams
-   - HTTP server on port 8000 for serving HLS streams
-   - API server on port 3002 for stream management
+### 📹 CCTV & Streaming
+*   **Live Monitoring**: Seamless HLS streaming with low latency.
+*   **Conversion Engine**: Automatic RTMP to HLS conversion using FFmpeg on the streaming server.
+*   **Health Status**: Real-time status monitoring (Online/Offline) of CCTV units.
+*   **History Logs**: Record specific performance dates for each CCTV unit via the ATCS History feature.
 
-4. **Unified Access** (Port 8000):
-   - Both applications accessible through single URL: http://localhost:8000
+### �️ Interactive Maps
+*   **Geospatial Tracking**: Integrated Leaflet.js map showing locations of Buildings and CCTV units.
+*   **Live Status Tooltips**: Clickable markers with real-time performance and status data.
 
-## 🛠️ Prerequisites
+### 🛠️ Admin Panel (Filament v4)
+*   **Granular Management**: Full CRUD for Buildings, Rooms, and CCTV units.
+*   **ATCS Entry**: Integrated Repeater forms for entering daily/hourly traffic and performance data.
+*   **Role-Based Access**: Secure management interface for refinery operators.
 
-- PHP 8.2 or higher
-- Composer
-- Node.js 18 or higher
-- npm or yarn
-- MySQL or compatible database
-- FFmpeg (for CCTV streaming)
+---
 
-## 📦 Installation
+## 🛠️ Technology Stack
 
-1. **Install Laravel dependencies**:
-   ```bash
-   cd backend-new
-   composer install
-   ```
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | Laravel 12, PHP 8.2+, MySQL |
+| **Admin UI** | Filament v4 (TALL Stack) |
+| **Frontend** | Next.js 15, React, TypeScript |
+| **Charts** | Recharts (Responsive & Dynamic) |
+| **Styling** | Tailwind CSS (Modern Glassmorphism Design) |
+| **Maps** | Leaflet.js |
+| **Streaming** | Node.js, NodeMediaServer, FFmpeg |
 
-2. **Install frontend dependencies**:
-   ```bash
-   cd ../v0-pertamina-frontend-build
-   npm install
-   ```
+---
 
-3. **Install streaming server dependencies**:
-   ```bash
-   cd ../streaming-server
-   npm install
-   ```
+## 📦 Installation & Setup
 
-4. **Install FFmpeg**:
-   - Download FFmpeg from https://ffmpeg.org/
-   - Add FFmpeg to your system PATH
-   - Verify installation: `ffmpeg -version`
-
-5. **Configure environment**:
-   ```bash
-   cd ../backend-new
-   cp .env.example .env
-   php artisan key:generate
-   ```
-   
-   Update database configuration in `.env` file:
-   ```env
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=your_database_name
-   DB_USERNAME=your_username
-   DB_PASSWORD=your_password
-   ```
-
-6. **Run database migrations and seeders**:
-   ```bash
-   php artisan migrate
-   php artisan db:seed --class=SuperAdminSeeder
-   php artisan db:seed --class=RolePermissionSeeder
-   ```
-
-7. **Build the frontend**:
-   ```bash
-   cd ../v0-pertamina-frontend-build
-   npm run build
-   ```
-
-8. **Copy standalone build to backend**:
-   ```bash
-   # From v0-pertamina-frontend-build directory
-   xcopy .next\standalone\v0-pertamina-frontend-build ..\backend-new\frontend /E /I /H
-   ```
-
-## ▶️ Running the Application
-
-### Option 1: Using the startup script (Recommended)
+### 1. Backend Setup
 ```bash
-# From the root directory
-npm start
+cd backend-new
+composer install
+cp .env.example .env
+# Configure your DB_DATABASE, DB_USERNAME, etc. in .env
+php artisan key:generate
+php artisan migrate --seed
+# Initial Seeders include: SuperAdminSeeder, RolePermissionSeeder
 ```
 
-### Option 2: Manual start
-1. **Start Laravel backend**:
-   ```bash
-   cd backend-new
-   php artisan serve
-   ```
+### 2. Frontend Setup
+```bash
+cd pertamina-frontend-build
+npm install
+npm run dev
+```
 
-2. **Start streaming server**:
-   ```bash
-   cd ../streaming-server
-   node server.js
-   ```
+### 3. Streaming Server
+```bash
+cd streaming-server
+npm install
+node server.js
+```
+*Note: Ensure **FFmpeg** is installed on your system and added to your environment PATH.*
 
-3. **Start Next.js frontend** (development mode):
-   ```bash
-   cd ../v0-pertamina-frontend-build
-   npm run dev
-   ```
-
-4. **Access the application**: http://localhost:8000
-
-### Option 3: Production mode
-1. **Start Laravel backend**:
-   ```bash
-   cd backend-new
-   php artisan serve
-   ```
-
-2. **Start streaming server**:
-   ```bash
-   cd ../streaming-server
-   node server.js
-   ```
-
-3. **Start Next.js frontend** (production mode):
-   ```bash
-   cd backend-new/frontend
-   node server.js
-   ```
+---
 
 ## 🌐 Access Points
 
-- **Main Application**: http://localhost:8000
-- **Admin Panel**: http://localhost:8000/admin
-- **API Endpoints**: http://localhost:8000/api/*
-- **Streaming Server API**: http://localhost:3002/api/*
-- **HLS Streams**: http://localhost:8000/live/{cctv_id}/index.m3u8
-- **Direct Frontend Access**: http://localhost:3000 (development only)
+| Component | URL |
+| :--- | :--- |
+| **Main Dashboard** | [http://127.0.0.1:8000](http://127.0.0.1:8000) |
+| **Admin Panel** | [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin) |
+| **API Backend** | [http://127.0.0.1:8000/api](http://127.0.0.1:8000/api) |
+| **Streaming API** | [http://127.0.0.1:3002/api](http://127.0.0.1:3002/api) |
 
-## 🧪 Testing API Endpoints
+---
 
-You can test the API endpoints directly:
-- http://localhost:8000/api/stats
-- http://localhost:8000/api/buildings
-- http://localhost:8000/api/rooms
-- http://localhost:8000/api/cctvs
-- http://localhost:8000/api/contacts
+## 🔧 Developer Workflow
 
-## 📁 Key Components
+### Adding New ATCS Data
+1.  Login to the **Admin Panel**.
+2.  Navigate to **CCTVs**.
+3.  Select a CCTV unit and go to the **ATCS History** section.
+4.  Add a new date entry and fill in the metrics:
+    *   *Traffic Volume*, *Avg Speed*, *Congestion Index*, *Green Wave Eff.*
+5.  Save changes. The frontend charts (**Area Traffic Control System** and **Unit Performance**) will automatically update and aggregate this data based on the CCTV's Room/Building.
 
-### Routing
-- API routes: `backend-new/routes/api.php`
-- Web routes: `backend-new/routes/web.php`
+### CCTV Stream Configuration
+-   Edit a CCTV record and provide the **RTSP URL** from the camera.
+-   The system will automatically generate a stream ID (e.g., `cctv-1`).
+-   The frontend will request the stream via the Node Media Server at `http://localhost:8000/live/cctv-1/index.m3u8`.
 
-### Filament Admin Panel
-- Configuration: `backend-new/app/Providers/Filament/AdminPanelProvider.php`
-- Resources: `backend-new/app/Filament/Resources/`
-- Pages: `backend-new/app/Filament/Pages/`
-- Widgets: `backend-new/app/Filament/Widgets/`
+---
 
-### Frontend API Integration
-- API configuration: `v0-pertamina-frontend-build/lib/api.ts`
-- Base URL: `http://127.0.0.1:8000/api` (direct connection)
+## 📱 Responsive & Premium Design
+This application features a **Premium Glassmorphism UI** optimized for:
+-   **Desktop**: For centralized control room monitoring.
+-   **Mobile/Tablet**: For engineers on the field (Optimized charts, sliding sidebars, and responsive footers).
 
-### Streaming Server
-- Main server: `streaming-server/server.js`
-- Stream storage: `streaming-server/streams/`
-- API endpoints:
-  - `GET /api/start-stream/:cctvId` - Start streaming for CCTV
-  - `POST /api/stop-stream/:cctvId` - Stop streaming for CCTV
-  - `GET /api/stream-status/:cctvId` - Check streaming status
+---
 
-## 🛠️ Development Workflow
+## 🔒 Security & Performance
+-   **CORS Protection**: Configured for secure frontend-backend communication.
+-   **Service Caching**: Production trends and unit performance calculations are cached to ensure sub-second response times.
+-   **Real-time Prioritization**: Manual history inputs always override simulated fallback data.
 
-1. **Frontend Development**:
-   ```bash
-   cd v0-pertamina-frontend-build
-   npm run dev
-   ```
+---
 
-2. **Backend Development**:
-   ```bash
-   cd backend-new
-   php artisan serve
-   ```
-
-3. **Streaming Server Development**:
-   ```bash
-   cd streaming-server
-   node server.js
-   ```
-
-4. **Rebuild Frontend** (after changes):
-   ```bash
-   cd v0-pertamina-frontend-build
-   npm run build
-   xcopy .next\standalone\v0-pertamina-frontend-build ..\backend-new\frontend /E /I /H
-   ```
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-1. **Port already in use**:
-   - Kill processes using ports 8000, 3000, 1935, or 3002:
-     ```bash
-     netstat -ano | findstr :8000
-     taskkill /PID <process_id> /F
-     ```
-
-2. **Database connection errors**:
-   - Verify database credentials in `.env`
-   - Ensure MySQL service is running
-   - Check if database exists
-
-3. **Frontend not loading**:
-   - Ensure both servers are running
-   - Check Laravel logs: `backend-new/storage/logs/laravel.log`
-   - Verify Next.js server is accessible at http://localhost:3000
-
-4. **API calls failing**:
-   - Check CORS configuration
-   - Verify API routes in `backend-new/routes/api.php`
-   - Test endpoints directly with curl or Postman
-
-5. **Streaming not working**:
-   - Verify FFmpeg is installed and accessible
-   - Check streaming server logs
-   - Ensure CCTV cameras have valid RTSP URLs
-   - Verify ports 1935, 8000, and 3002 are available
-
-6. **HLS stream playback issues**:
-   - Check if streams are being generated in `streaming-server/streams/`
-   - Verify network connectivity to streaming server
-   - Ensure browser supports HLS playback
-
-### Logs
-
-- Laravel logs: `backend-new/storage/logs/laravel.log`
-- Next.js server logs: Terminal output when running `node server.js`
-- Streaming server logs: Terminal output when running `node streaming-server/server.js`
-
-## 🎯 Features
-
-### Backend (Laravel + Filament)
-- RESTful API endpoints
-- Filament admin panel with CRUD operations
-- User authentication and authorization
-- Database migrations and seeders
-- Caching for performance optimization
-- Error handling and logging
-- CCTV management with RTSP URL configuration
-
-### Frontend (Next.js + React)
-- Responsive UI components
-- API integration with error handling
-- Dynamic routing
-- Server-side rendering
-- Static asset optimization
-- TypeScript type safety
-- Live CCTV streaming with HLS playback
-- Interactive maps with Leaflet.js
-- Real-time dashboard with charts
-
-### Streaming Server (Node Media Server)
-- RTMP to HLS conversion using FFmpeg
-- Dynamic stream creation based on CCTV requests
-- Stream management API
-- Concurrent stream handling
-- Automatic stream cleanup
-
-## 📱 Responsive Design
-
-The application is fully responsive and works on:
-- Desktop browsers
-- Tablet devices
-- Mobile phones
-
-All pages maintain proper layout across different screen sizes and orientations.
-
-## 🔒 Security
-
-- CSRF protection for forms
-- SQL injection prevention
-- XSS attack prevention
-- Secure API endpoints
-- Role-based access control
-- Stream access control
-
-## 🚀 Performance
-
-- Database query optimization
-- API response caching
-- Static asset compression
-- Lazy loading components
-- Code splitting
-- Stream caching and reuse
-
-## 📚 Additional Documentation
-
-For more detailed information about the integration, see:
-- [Integration Guide](INTEGRATION_GUIDE.md) - Detailed explanation of how Laravel, Filament, and Next.js work together
+&copy; 2026 **PT Kilang Pertamina Internasional – Refinery Unit VI Balongan**.  
+All rights reserved.

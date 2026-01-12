@@ -76,7 +76,7 @@ process.on('SIGTERM', () => {
 // Check if processes started successfully
 setTimeout(() => {
   console.log('\n✅ Fullstack application startup initiated!');
-  console.log('🌐 Access your application at: http://127.0.0.1:8000');
+  console.log('🌐 Access application at: http://127.0.0.1:8000');
   console.log('📡 Streaming server RTMP available on port 1935');
   console.log('📡 Streaming server HTTP available on port 8001');
   console.log('📡 Streaming server API available on port 3000');
