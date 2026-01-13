@@ -30,6 +30,8 @@ return [
         'http://192.168.100.2:3000',
         'http://192.168.100.2:3001',
         'http://192.168.100.2:3002',
+        'https://*.vercel.app',
+        'https://fullstack-atcs-rogm-gg4g8w21y-aanugerahahmad27-9513s-projects.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],
