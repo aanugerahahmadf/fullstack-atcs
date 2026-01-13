@@ -1,0 +1,5 @@
+[variables]
+PHP_VERSION = "8.2"
+
+[phases.setup]
+nixPkgs = ["...", "php83", "php83Extensions.intl", "php83Extensions.zip", "php83Extensions.sockets"]

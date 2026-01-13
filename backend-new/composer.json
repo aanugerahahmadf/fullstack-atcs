@@ -7,6 +7,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-intl": "*",
+        "ext-zip": "*",
+        "ext-sockets": "*",
         "bezhansalleh/filament-shield": "^4.0",
         "blade-ui-kit/blade-zondicons": "^1.6",
         "codeat3/blade-elusive-icons": "^1.5",
