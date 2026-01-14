@@ -1,12 +1,15 @@
 {
     "$schema": "https://json.schemastore.org/package.json",
+    "engines": {
+        "node": "20.x"
+    },
     "private": true,
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "vite build && node -e \"const fs=require('fs'); if(!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.cpSync('public', 'dist', {recursive:true})\"",
         "vercel-build": "npm run build && php artisan route:cache && php artisan view:cache && php artisan config:cache && php artisan event:cache",
-        "deploy": "pnpm run prepare-deploy && vercel deploy --force --prod"
+        "deploy": "bun run build && vercel deploy --force --prod"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
