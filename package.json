@@ -5,7 +5,7 @@
   "main": "start-app.js",
   "scripts": {
     "dev": "npm run dev --prefix pertamina-frontend-build",
-    "build": "npm run build --prefix pertamina-frontend-build",
+    "build": "npm install --prefix pertamina-frontend-build && npm run build --prefix pertamina-frontend-build",
     "start": "npm run start --prefix pertamina-frontend-build",
     "complete": "node start-fullstack.js",
     "structured": "node start-fullstack.js",
