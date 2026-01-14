@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: atcs-backend
+    runtime: php
+    rootDir: backend-new
+    plan: free
+    buildCommand: "composer install --no-dev --optimize-autoloader --ignore-platform-reqs"
+    startCommand: "php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=$PORT"
+    envVars:
+      - key: PHP_VERSION
+        value: "8.2"
+      - key: APP_ENV
+        value: "production"
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: "stderr"
+      - key: DB_CONNECTION
+        value: "mysql"

@@ -9,7 +9,9 @@ declare global {
 }
 
 export const initEcho = () => {
-    if (typeof window !== 'undefined' && !window.Echo) {
+    if (typeof window === 'undefined') return null;
+
+    if (!window.Echo) {
         window.Pusher = Pusher;
 
         window.Echo = new Echo({
